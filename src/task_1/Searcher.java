@@ -16,11 +16,31 @@ public class Searcher {
 	public static void main(String[] args) throws FileNotFoundException {
 		// TODO Auto-generated method stub
 		Searcher searcher = new Searcher();
-		searcher.index(new File("twitter.csv"));
-		System.out.println(searcher.query("side effects Malaria", "COVID vaccines"));
-		System.out.println(searcher.query("side effect Malaria", "COVID vaccine"));
-		System.out.println(searcher.query("side effects Malaria", "COVID vaccine"));
-		System.out.println(searcher.query("side effect Malaria", "COVID vaccines"));
+		searcher.index(new File("src//twitter.csv"));
+		System.out.println(searcher.query("side effects Malaria", "COVID vaccines")); // no results
+		System.out.println(searcher.query("side effect Malaria", "COVID vaccine")); // no results
+		System.out.println(searcher.query("side effects Malaria", "COVID vaccine")); //results: [1395486226216628225, 1414233129129238532, 1419334582206410759]
+		
+		//1395486226216628225	@lisaebasa	Lisa ✍ Content Writer	These Covid vaccine side effects are no joke. I'm here feeling like I have serious malaria
+		//1414233129129238532	@10DY3	Rey	Covid vaccine side effects are not cute. Ni mvela malaria malaria 🥴
+		//1419334582206410759	@adamselzer	Adam Selzer | אדם	“Eric Clapton said he had side effects from the vaccine; I’ll just take my chances with Covid.” - some guy on my facebook[NEWLINE][NEWLINE]“That’s like to say if you got a cold, take a shot of malaria.” - Bob Dylan, 1962
+		
+		System.out.println(searcher.query("side effect Malaria", "COVID vaccines")); //no results
+		
+		//"show me tweets of people who talk about the side effects of malaria and COVID vaccines" as in "side effects of malaria" and/or "side effects of COVID vaccines"
+		System.out.println(searcher.query("side effects", "Malaria")); // 
+		System.out.println(searcher.query("side effect", "Malaria")); // 
+		System.out.println(searcher.query("side effects", "COVID vaccines")); // 
+		System.out.println(searcher.query("side effect", "COVID vacciness")); // 
+		System.out.println(searcher.query("side effects", "COVID vaccines")); // 
+		System.out.println(searcher.query("side effect", "COVID vaccines")); // 
+		
+		//"show me tweets of people who talk about the side effects of malaria and COVID vaccines" as in "side effects of malaria vaccines" and/or "side effects of COVID vaccines"
+		System.out.println(searcher.query("side effects", "Malaria vaccines")); // 
+		System.out.println(searcher.query("side effect", "Malaria vaccines")); // 
+		System.out.println(searcher.query("side effects", "COVID vaccine")); // 
+		System.out.println(searcher.query("side effect", "COVID vaccine")); // 
+		
 		System.out.println(searcher.query("Malaria", "COVID").subList(0, 10));
 		System.out.println(searcher.query("Malaria").subList(0, 10));
 		System.out.println(searcher.query("COVID").subList(0, 10));
@@ -129,8 +149,6 @@ public class Searcher {
 		if (splitTerm.length > 1) {
 			return query(Arrays.asList(term.split(" ")));
 		}
-
-		System.out.println(normalize(term));
 		int position = dictonary.get(normalize(term)).postingListPos;
 		// System.out.println(position);
 		if (position >= 0) {
