@@ -24,11 +24,12 @@ public class Searcher {
 	ArrayList<ArrayList<Long>> postingsLists = new ArrayList<ArrayList<Long>>();
 
 	public void index(File file) throws FileNotFoundException {
-		int n = 0;
+		int n = 0; 
 
 		Scanner scanner = new Scanner(file);
 		long time = System.nanoTime();
 
+		//if you want to search only the first n terms 
 		while (scanner.hasNext() && (n < 30000000)) {
 			n++;
 			if (n % 10000 == 0) {
@@ -59,17 +60,6 @@ public class Searcher {
 		}
 		System.out.println();
 		System.out.println((System.nanoTime() - time) / (double) 1000000000);
-
-		System.out.println(1 + " " + time1Sum / (double) 1000000000);
-		System.out.println(2 + " " + time2Sum / (double) 1000000000);
-		System.out.println(3 + " " + time3Sum / (double) 1000000000);
-		System.out.println(4 + " " + time4Sum / (double) 1000000000);
-		System.out.println(5 + " " + time5Sum / (double) 1000000000);
-		System.out.println(6 + " " + time6Sum / (double) 1000000000);
-		System.out.println(7 + " " + time7Sum / (double) 1000000000);
-		System.out.println(8 + " " + time8Sum / (double) 1000000000);
-
-		time = System.nanoTime();
 		scanner.close();
 
 //		for (DictEntry entry : dictonary) {
@@ -84,63 +74,23 @@ public class Searcher {
 				.replace(":", " ").replace("“", " ").toLowerCase().strip();
 	}
 
-	long time1 = System.nanoTime();
-	long time2 = System.nanoTime();
-	long time3 = System.nanoTime();
-	long time4 = System.nanoTime();
-	long time5 = System.nanoTime();
-	long time6 = System.nanoTime();
-	long time7 = System.nanoTime();
-	long time8 = System.nanoTime();
-
-	long time1Sum = 0;
-	long time2Sum = 0;
-	long time3Sum = 0;
-	long time4Sum = 0;
-	long time5Sum = 0;
-	long time6Sum = 0;
-	long time7Sum = 0;
-	long time8Sum = 0;
-
 	public void add(String token, long id) {
 
-		time1 = System.nanoTime();
-
-		time1Sum += System.nanoTime() - time1;
-
-		time2 = System.nanoTime();
 		if (!dictonary.containsKey(token)) { // 0.0563824 whole loop
-			time3 = System.nanoTime();
 			dictonary.put(token, new DictEntry(1, makePostingsList(id)));
-			time3Sum += System.nanoTime() - time3;
 			return;
 		}
-		time2Sum += System.nanoTime() - time2;
 
-		time4 = System.nanoTime();
 		int postingListPos = dictonary.get(token).postingListPos; // 0.0667442
-		time4Sum += System.nanoTime() - time4;
-
-		time5 = System.nanoTime();
 		ArrayList<Long> postings = postingsLists.get(postingListPos); // 0.1953765
-		time5Sum += System.nanoTime() - time5;
-
 		// !postings.contains(id)
 		// 8.453592 whole loop with !postings.contains(id), 1.2163975 with
 		// (Collections.binarySearch(postings, id) < 0)
 
-		time6 = System.nanoTime();
 		int postingPosition = Collections.binarySearch(postings, id);
-		time6Sum += System.nanoTime() - time6;
-
 		if (postingPosition < 0) { // 8.453592 whole loop with
-			time7 = System.nanoTime();
 			dictonary.get(token).frequency++; // 0.0759479
-			time7Sum += System.nanoTime() - time7;
-
-			time8 = System.nanoTime();
 			postings.add(-postingPosition - 1, id);
-			time8Sum += System.nanoTime() - time8;
 		}
 
 	}
