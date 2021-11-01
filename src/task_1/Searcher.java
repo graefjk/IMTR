@@ -16,31 +16,56 @@ public class Searcher {
 	public static void main(String[] args) throws FileNotFoundException {
 		// TODO Auto-generated method stub
 		Searcher searcher = new Searcher();
-		searcher.index(new File("src//twitter.csv"));
+		searcher.index(new File("twitter.csv"));
 		System.out.println(searcher.query("side effects Malaria", "COVID vaccines")); // no results
 		System.out.println(searcher.query("side effect Malaria", "COVID vaccine")); // no results
-		System.out.println(searcher.query("side effects Malaria", "COVID vaccine")); //results: [1395486226216628225, 1414233129129238532, 1419334582206410759]
-		
-		//1395486226216628225	@lisaebasa	Lisa ✍ Content Writer	These Covid vaccine side effects are no joke. I'm here feeling like I have serious malaria
-		//1414233129129238532	@10DY3	Rey	Covid vaccine side effects are not cute. Ni mvela malaria malaria 🥴
-		//1419334582206410759	@adamselzer	Adam Selzer | אדם	“Eric Clapton said he had side effects from the vaccine; I’ll just take my chances with Covid.” - some guy on my facebook[NEWLINE][NEWLINE]“That’s like to say if you got a cold, take a shot of malaria.” - Bob Dylan, 1962
-		
-		System.out.println(searcher.query("side effect Malaria", "COVID vaccines")); //no results
-		
-		//"show me tweets of people who talk about the side effects of malaria and COVID vaccines" as in "side effects of malaria" and/or "side effects of COVID vaccines"
-		System.out.println(searcher.query("side effects", "Malaria")); // 
-		System.out.println(searcher.query("side effect", "Malaria")); // 
-		System.out.println(searcher.query("side effects", "COVID vaccines")); // 
-		System.out.println(searcher.query("side effect", "COVID vacciness")); // 
-		System.out.println(searcher.query("side effects", "COVID vaccines")); // 
-		System.out.println(searcher.query("side effect", "COVID vaccines")); // 
-		
-		//"show me tweets of people who talk about the side effects of malaria and COVID vaccines" as in "side effects of malaria vaccines" and/or "side effects of COVID vaccines"
-		System.out.println(searcher.query("side effects", "Malaria vaccines")); // 
-		System.out.println(searcher.query("side effect", "Malaria vaccines")); // 
-		System.out.println(searcher.query("side effects", "COVID vaccine")); // 
-		System.out.println(searcher.query("side effect", "COVID vaccine")); // 
-		
+		System.out.println(searcher.query("side effects Malaria", "COVID vaccine")); // results: [1395486226216628225,
+																						// 1414233129129238532,
+																						// 1419334582206410759]
+
+		// 1395486226216628225 @lisaebasa Lisa ✍ Content Writer These Covid vaccine side
+		// effects are no joke. I'm here feeling like I have serious malaria
+		// 1414233129129238532 @10DY3 Rey Covid vaccine side effects are not cute. Ni
+		// mvela malaria malaria 🥴
+		// 1419334582206410759 @adamselzer Adam Selzer | אדם “Eric Clapton said he had
+		// side effects from the vaccine; I’ll just take my chances with Covid.” - some
+		// guy on my facebook[NEWLINE][NEWLINE]“That’s like to say if you got a cold,
+		// take a shot of malaria.” - Bob Dylan, 1962
+
+		System.out.println(searcher.query("side effect Malaria", "COVID vaccines")); // no results
+
+		// "show me tweets of people who talk about the side effects of malaria and
+		// COVID vaccines" as in "side effects of malaria" and/or "side effects of COVID
+		// vaccines"
+		System.out.println(searcher.query("side effects", "Malaria")); // [1367971503573266434, 1369013217893232641,
+																		// 1369714948578938880, 1369721990261714947,
+																		// 1378019116808871940, 1379866604758986756,
+																		// 1379881379522080773, 1386096414888022022,
+																		// 1389623222509965319, 1390558543892340736,
+																		// 1395486226216628225, 1397279306720718849,
+																		// 1397279672623419396, 1399832966541496322,
+																		// 1400817309644734464, 1401564123960250369,
+																		// 1402005689589960708, 1412836299254415364,
+																		// 1414233129129238532, 1419334582206410759,
+																		// 1422297273573285890, 1425137761103851524,
+																		// 1425228681803304960, 1429372699969720320,
+																		// 1431327734660308996, 1432091029252059138,
+																		// 1437533029409464323, 1440771791778029568]
+
+		System.out.println(searcher.query("side effect", "Malaria")); // [1348965245646204928, 1353800682965446656, 1374093998139305985, 1375210663493128205, 1379881379522080773, 1408115547066224650, 1423777060841996291]
+		System.out.println(searcher.query("side effects", "COVID vaccines")); //[1345519179525464065, 1356390570105610241, 1359009146398408705, 1362456146389385221, 1364724700593721351, 1371534745809547264, 1372772796346998784, 1373720332146778113, 1375446942256271367, 1377703250946760707, 1379903590941134850, 1382514072223031306, 1383026939603091456, 1386468881082970112, 1388279455693643783, 1390811852729290752, 1391542129957249028, 1396138553512501258, 1397506903064956929, 1401890664380461056, 1403864293322506240, 1405551171670994947, 1405613950700457989, 1407848810802462723, 1408210345420738563, 1408500961665064976, 1409659378110660608, 1411471789482418177, 1412922374006136833, 1414733987017285636, 1416137465740644355, 1416182247892393987, 1417845198512607234, 1417972041089757192, 1418402997521031172, 1419133218675216389, 1422965727925919749, 1423082761825443841, 1423423589261340672, 1423432518003396615, 1425826157832728587, 1427186264349024257, 1427418107866345475, 1428143461144928256, 1436489048185573403, 1438250839332823043, 1440374772555149323, 1442263171440332800, 1443001148739362819]
+		System.out.println(searcher.query("side effect", "COVID vaccines")); //
+		System.out.println(searcher.query("side effects", "COVID vaccines")); //
+		System.out.println(searcher.query("side effect", "COVID vaccines")); //
+
+		// "show me tweets of people who talk about the side effects of malaria and
+		// COVID vaccines" as in "side effects of malaria vaccines" and/or "side effects
+		// of COVID vaccines"
+		System.out.println(searcher.query("side effects", "Malaria vaccines")); //
+		System.out.println(searcher.query("side effect", "Malaria vaccines")); //
+		System.out.println(searcher.query("side effects", "COVID vaccine")); //
+		System.out.println(searcher.query("side effect", "COVID vaccine")); //
+
 		System.out.println(searcher.query("Malaria", "COVID").subList(0, 10));
 		System.out.println(searcher.query("Malaria").subList(0, 10));
 		System.out.println(searcher.query("COVID").subList(0, 10));
@@ -50,12 +75,12 @@ public class Searcher {
 	ArrayList<ArrayList<Long>> postingsLists = new ArrayList<ArrayList<Long>>();
 
 	public void index(File file) throws FileNotFoundException {
-		int n = 0; 
+		int n = 0;
 
 		Scanner scanner = new Scanner(file);
 		long time = System.nanoTime();
 
-		//if you want to search only the first n terms 
+		// if you want to search only the first n terms
 		while (scanner.hasNext() && (n < 30000000)) {
 			n++;
 			if (n % 10000 == 0) {
@@ -64,7 +89,8 @@ public class Searcher {
 			String line = scanner.nextLine();
 			String[] columns = line.split("	"); // special whitespace
 			// this check is here because of line 2114543, 4115522, 4357319, 4577422,
-			// 5520503, 6437018, 6437019, 6512362, 7185729 in the input file which are incorrectly
+			// 5520503, 6437018, 6437019, 6512362, 7185729 in the input file which are
+			// incorrectly
 			// formated
 			if (columns.length < 4) {
 				System.out.println(columns.length + " " + n);
