@@ -18,6 +18,12 @@ public class Searcher {
 		Searcher searcher = new Searcher();
 		searcher.index(new File("twitter.csv"));
 		System.out.println(searcher.query("side effects Malaria", "COVID vaccines"));
+		System.out.println(searcher.query("side effect Malaria", "COVID vaccine"));
+		System.out.println(searcher.query("side effects Malaria", "COVID vaccine"));
+		System.out.println(searcher.query("side effect Malaria", "COVID vaccines"));
+		System.out.println(searcher.query("Malaria", "COVID").subList(0, 10));
+		System.out.println(searcher.query("Malaria").subList(0, 10));
+		System.out.println(searcher.query("COVID").subList(0, 10));
 	}
 
 	HashMap<String, DictEntry> dictonary = new HashMap<String, DictEntry>();
@@ -38,7 +44,7 @@ public class Searcher {
 			String line = scanner.nextLine();
 			String[] columns = line.split("	"); // special whitespace
 			// this check is here because of line 2114543, 4115522, 4357319, 4577422,
-			// 5520503, 6437018, 6437019, 6512362 in the input file which are incorrectly
+			// 5520503, 6437018, 6437019, 6512362, 7185729 in the input file which are incorrectly
 			// formated
 			if (columns.length < 4) {
 				System.out.println(columns.length + " " + n);
@@ -124,7 +130,7 @@ public class Searcher {
 			return query(Arrays.asList(term.split(" ")));
 		}
 
-		// System.out.println(normalizedTerm);
+		System.out.println(normalize(term));
 		int position = dictonary.get(normalize(term)).postingListPos;
 		// System.out.println(position);
 		if (position >= 0) {
