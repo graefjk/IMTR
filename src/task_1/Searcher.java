@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.List;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Arrays;
@@ -15,21 +16,11 @@ public class Searcher {
 	public static void main(String[] args) throws FileNotFoundException {
 		// TODO Auto-generated method stub
 		Searcher searcher = new Searcher();
-		searcher.index(new File("src//twitter.csv"));
-
-		// System.out.println(searcher.query("capitol"));
-		// System.out.println(searcher.query("trump"));
-		// System.out.println(searcher.query("capitol", "trump"));
-		// System.out.println(searcher.postingsLists.get(16861));
-		// System.gc();
-		searcher.query("side effects of malaria","COVID vaccines").forEach(e -> System.out.println(e));
+		searcher.index(new File("twitter.csv"));
+		System.out.println(searcher.query("side effects Malaria", "COVID vaccines"));
 	}
 
-	// ArrayList 16.2037631
-	// Vector 18.219501
-	// Stack 18.2218297
-
-	HashMap<String,DictEntry> dictonary = new HashMap<String,DictEntry>();
+	HashMap<String, DictEntry> dictonary = new HashMap<String, DictEntry>();
 	ArrayList<ArrayList<Long>> postingsLists = new ArrayList<ArrayList<Long>>();
 
 	public void index(File file) throws FileNotFoundException {
@@ -38,7 +29,7 @@ public class Searcher {
 		Scanner scanner = new Scanner(file);
 		long time = System.nanoTime();
 
-		while (scanner.hasNext() && (n < 300000)) {
+		while (scanner.hasNext() && (n < 30000000)) {
 			n++;
 			if (n % 10000 == 0) {
 				System.out.println(n);
@@ -46,7 +37,8 @@ public class Searcher {
 			String line = scanner.nextLine();
 			String[] columns = line.split("	"); // special whitespace
 			// this check is here because of line 2114543, 4115522, 4357319, 4577422,
-			// 5520503, 6437018, 6437019, 6512362 in the input file which are incorrectly formated
+			// 5520503, 6437018, 6437019, 6512362 in the input file which are incorrectly
+			// formated
 			if (columns.length < 4) {
 				System.out.println(columns.length + " " + n);
 				continue;
@@ -54,7 +46,6 @@ public class Searcher {
 			long id = Long.parseLong(columns[0]);
 			String[] tokens = normalize(columns[3]).split(" ");
 
-			
 			// some tweets are multiple times in the input csv. If we detect such a double
 			// we dont add it a second time.
 
@@ -113,15 +104,14 @@ public class Searcher {
 
 	public void add(String token, long id) {
 
-		time1 = System.nanoTime(); 
-		
-		
+		time1 = System.nanoTime();
+
 		time1Sum += System.nanoTime() - time1;
 
 		time2 = System.nanoTime();
 		if (!dictonary.containsKey(token)) { // 0.0563824 whole loop
 			time3 = System.nanoTime();
-			dictonary.put(token, new DictEntry(1,makePostingsList(id)));
+			dictonary.put(token, new DictEntry(1, makePostingsList(id)));
 			time3Sum += System.nanoTime() - time3;
 			return;
 		}
@@ -135,8 +125,6 @@ public class Searcher {
 		ArrayList<Long> postings = postingsLists.get(postingListPos); // 0.1953765
 		time5Sum += System.nanoTime() - time5;
 
-
-		
 		// !postings.contains(id)
 		// 8.453592 whole loop with !postings.contains(id), 1.2163975 with
 		// (Collections.binarySearch(postings, id) < 0)
@@ -144,7 +132,7 @@ public class Searcher {
 		time6 = System.nanoTime();
 		int postingPosition = Collections.binarySearch(postings, id);
 		time6Sum += System.nanoTime() - time6;
-		
+
 		if (postingPosition < 0) { // 8.453592 whole loop with
 			time7 = System.nanoTime();
 			dictonary.get(token).frequency++; // 0.0759479
@@ -178,16 +166,16 @@ public class Searcher {
 			this.postingListPos = postingListPos;
 		}
 
-
-	}
-
-	public DictEntry searchDictonary(String searchTerm) {
-		return dictonary.get(searchTerm);
 	}
 
 	public ArrayList<Long> query(String term) {
+		String[] splitTerm = term.split(" ");
+		if (splitTerm.length > 1) {
+			return query(Arrays.asList(term.split(" ")));
+		}
+
 		// System.out.println(normalizedTerm);
-		int position = searchDictonary(normalize(term)).postingListPos;
+		int position = dictonary.get(normalize(term)).postingListPos;
 		// System.out.println(position);
 		if (position >= 0) {
 			return postingsLists.get(position);
@@ -196,44 +184,67 @@ public class Searcher {
 	}
 
 	public ArrayList<Long> query(String term1, String term2) {
-		Iterator<Long> term1Iterator = query(term1).iterator();
-		Iterator<Long> term2Iterator = query(term2).iterator();
+		ArrayList<String> queryList = new ArrayList<String>();
+		queryList.addAll(Arrays.asList(term1.split(" ")));
+		queryList.addAll(Arrays.asList(term2.split(" ")));
+		System.out.println(queryList);
+		return query(queryList);
+	}
+
+	public ArrayList<Long> query(List<String> terms) {
+		List<String> tempList = terms;
+		switch (tempList.size()) {
+		case 0:
+			return new ArrayList<Long>();
+		case 1:
+			return query(tempList.remove(0));
+		case 2:
+			return intersect(query(tempList.remove(0)), query(tempList.remove(0)));
+		default:
+			String term0 = tempList.remove(0);
+			return intersect(query(term0), query(tempList));
+		}
+	}
+
+	public ArrayList<Long> intersect(ArrayList<Long> list1, ArrayList<Long> list2) {
+		Iterator<Long> list1Iterator = list1.iterator();
+		Iterator<Long> list2Iterator = list2.iterator();
 		ArrayList<Long> intersection = new ArrayList<Long>();
 
-		if (!term1Iterator.hasNext() || !term2Iterator.hasNext()) {
+		if (!list1Iterator.hasNext() || !list2Iterator.hasNext()) {
 			return intersection;
 		}
 
-		long posting1 = term1Iterator.next();
-		long posting2 = term2Iterator.next();
+		long posting1 = list1Iterator.next();
+		long posting2 = list2Iterator.next();
 
 		while (true) {
 			// System.out.println(posting1 + " " + posting2);
 
 			if (posting1 == posting2) {
 				intersection.add(posting1);
-				if (term1Iterator.hasNext()) {
-					posting1 = term1Iterator.next();
+				if (list1Iterator.hasNext()) {
+					posting1 = list1Iterator.next();
 				} else {
 					break;
 				}
-				if (term2Iterator.hasNext()) {
-					posting2 = term2Iterator.next();
+				if (list2Iterator.hasNext()) {
+					posting2 = list2Iterator.next();
 				} else {
 					break;
 				}
 			}
 			if (posting1 < posting2) {
-				if (term1Iterator.hasNext()) {
-					posting1 = term1Iterator.next();
+				if (list1Iterator.hasNext()) {
+					posting1 = list1Iterator.next();
 					continue;
 				} else {
 					break;
 				}
 			}
 			if (posting1 > posting2) {
-				if (term2Iterator.hasNext()) {
-					posting2 = term2Iterator.next();
+				if (list2Iterator.hasNext()) {
+					posting2 = list2Iterator.next();
 					continue;
 				} else {
 					break;
@@ -242,6 +253,7 @@ public class Searcher {
 		}
 
 		return intersection;
+
 	}
 
 }
