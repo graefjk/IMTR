@@ -1,11 +1,12 @@
 package task_1;
 
 import java.io.File;
+
 import java.io.FileNotFoundException;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.ArrayList;
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Arrays;
 import java.util.Scanner;
 
@@ -14,7 +15,7 @@ public class Searcher {
 	public static void main(String[] args) throws FileNotFoundException {
 		// TODO Auto-generated method stub
 		Searcher searcher = new Searcher();
-		searcher.index(new File("twitter.csv"));
+		searcher.index(new File("src//twitter.csv"));
 
 		// System.out.println(searcher.query("capitol"));
 		// System.out.println(searcher.query("trump"));
@@ -28,7 +29,7 @@ public class Searcher {
 	// Vector 18.219501
 	// Stack 18.2218297
 
-	ArrayList<DictEntry> dictonary = new ArrayList<DictEntry>();
+	HashMap<String,DictEntry> dictonary = new HashMap<String,DictEntry>();
 	ArrayList<ArrayList<Long>> postingsLists = new ArrayList<ArrayList<Long>>();
 
 	public void index(File file) throws FileNotFoundException {
@@ -37,7 +38,7 @@ public class Searcher {
 		Scanner scanner = new Scanner(file);
 		long time = System.nanoTime();
 
-		while (scanner.hasNext() && (n < 10000)) {
+		while (scanner.hasNext() && (n < 300000)) {
 			n++;
 			if (n % 10000 == 0) {
 				System.out.println(n);
@@ -112,21 +113,22 @@ public class Searcher {
 
 	public void add(String token, long id) {
 
-		time1 = System.nanoTime();
-		int position = searchDictonary(token); // 1.6210686
+		time1 = System.nanoTime(); 
+		
+		
 		time1Sum += System.nanoTime() - time1;
 
 		time2 = System.nanoTime();
-		if (position < 0) { // 0.0563824 whole loop
+		if (!dictonary.containsKey(token)) { // 0.0563824 whole loop
 			time3 = System.nanoTime();
-			dictonary.add(-position - 1, new DictEntry(token, 1, makePostingsList(id))); // 0.7777419
+			dictonary.put(token, new DictEntry(1,makePostingsList(id)));
 			time3Sum += System.nanoTime() - time3;
 			return;
 		}
 		time2Sum += System.nanoTime() - time2;
 
 		time4 = System.nanoTime();
-		int postingListPos = dictonary.get(position).postingListPos; // 0.0667442
+		int postingListPos = dictonary.get(token).postingListPos; // 0.0667442
 		time4Sum += System.nanoTime() - time4;
 
 		time5 = System.nanoTime();
@@ -145,7 +147,7 @@ public class Searcher {
 		
 		if (postingPosition < 0) { // 8.453592 whole loop with
 			time7 = System.nanoTime();
-			dictonary.get(position).frequency++; // 0.0759479
+			dictonary.get(token).frequency++; // 0.0759479
 			time7Sum += System.nanoTime() - time7;
 
 			time8 = System.nanoTime();
@@ -167,31 +169,25 @@ public class Searcher {
 		return postingsLists.size() - 1;
 	}
 
-	public class DictEntry implements Comparable<DictEntry> {
-		public final String term;
+	public class DictEntry {
 		public int frequency;
 		public int postingListPos;
 
-		public DictEntry(String term, int frequency, int postingListPos) {
-			this.term = term;
+		public DictEntry(int frequency, int postingListPos) {
 			this.frequency = frequency;
 			this.postingListPos = postingListPos;
 		}
 
-		@Override
-		public int compareTo(DictEntry entry) {
-			return this.term.compareTo(entry.term);
-		}
 
 	}
 
-	public int searchDictonary(String searchTerm) {
-		return Collections.binarySearch(dictonary, new DictEntry(searchTerm, 0, 0));
+	public DictEntry searchDictonary(String searchTerm) {
+		return dictonary.get(searchTerm);
 	}
 
 	public ArrayList<Long> query(String term) {
 		// System.out.println(normalizedTerm);
-		int position = dictonary.get(searchDictonary(normalize(term))).postingListPos;
+		int position = searchDictonary(normalize(term)).postingListPos;
 		// System.out.println(position);
 		if (position >= 0) {
 			return postingsLists.get(position);
