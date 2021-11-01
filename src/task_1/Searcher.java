@@ -5,6 +5,7 @@ import java.io.FileNotFoundException;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.ArrayList;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Scanner;
 
@@ -13,13 +14,14 @@ public class Searcher {
 	public static void main(String[] args) throws FileNotFoundException {
 		// TODO Auto-generated method stub
 		Searcher searcher = new Searcher();
-		searcher.index(new File("C:\\Users\\janni\\Desktop\\IRTM\\assignments\\twitter.csv"));
+		searcher.index(new File("twitter.csv"));
 
 		// System.out.println(searcher.query("capitol"));
 		// System.out.println(searcher.query("trump"));
 		// System.out.println(searcher.query("capitol", "trump"));
 		// System.out.println(searcher.postingsLists.get(16861));
 		// System.gc();
+		searcher.query("side effects of malaria","COVID vaccines").forEach(e -> System.out.println(e));
 	}
 
 	// ArrayList 16.2037631
@@ -35,13 +37,15 @@ public class Searcher {
 		Scanner scanner = new Scanner(file);
 		long time = System.nanoTime();
 
-		while (scanner.hasNext() && (n < 10000000)) {
+		while (scanner.hasNext() && (n < 10000)) {
 			n++;
 			if (n % 10000 == 0) {
 				System.out.println(n);
 			}
 			String line = scanner.nextLine();
 			String[] columns = line.split("	"); // special whitespace
+			// this check is here because of line 2114543, 4115522, 4357319, 4577422,
+			// 5520503, 6437018, 6437019, 6512362 in the input file which are incorrectly formated
 			if (columns.length < 4) {
 				System.out.println(columns.length + " " + n);
 				continue;
@@ -49,15 +53,16 @@ public class Searcher {
 			long id = Long.parseLong(columns[0]);
 			String[] tokens = normalize(columns[3]).split(" ");
 
+			
 			// some tweets are multiple times in the input csv. If we detect such a double
 			// we dont add it a second time.
 
 			for (String token : tokens) {
 				if (token.strip().length() != 0) {
-					this.add(token, id);  // this takes by far the most time;
+					this.add(token, id); // this takes by far the most time;
 				}
-				
-		}
+
+			}
 
 		}
 		System.out.println();
@@ -128,26 +133,29 @@ public class Searcher {
 		ArrayList<Long> postings = postingsLists.get(postingListPos); // 0.1953765
 		time5Sum += System.nanoTime() - time5;
 
-		time6 = System.nanoTime();
+
+		
 		// !postings.contains(id)
 		// 8.453592 whole loop with !postings.contains(id), 1.2163975 with
 		// (Collections.binarySearch(postings, id) < 0)
-		if (Collections.binarySearch(postings, id) < 0) { // 8.453592 whole loop with
+
+		time6 = System.nanoTime();
+		int postingPosition = Collections.binarySearch(postings, id);
+		time6Sum += System.nanoTime() - time6;
+		
+		if (postingPosition < 0) { // 8.453592 whole loop with
 			time7 = System.nanoTime();
 			dictonary.get(position).frequency++; // 0.0759479
 			time7Sum += System.nanoTime() - time7;
 
 			time8 = System.nanoTime();
-			addToPosting(id, postingListPos); // 0.5625919
+			postings.add(-postingPosition - 1, id);
 			time8Sum += System.nanoTime() - time8;
 		}
-		time6Sum += System.nanoTime() - time6;
+
 	}
 
-	private void addToPosting(long id, int postingListPos) {
-		postingsLists.get(postingListPos).add(-Collections.binarySearch(postingsLists.get(postingListPos), id) - 1, id);
-	}
-
+	@SuppressWarnings("serial")
 	private int makePostingsList(long id) {
 		postingsLists.add(new ArrayList<Long>() {
 			{
@@ -168,14 +176,6 @@ public class Searcher {
 			this.term = term;
 			this.frequency = frequency;
 			this.postingListPos = postingListPos;
-		}
-
-		@Override
-		public boolean equals(Object object) {
-			if (!object.getClass().equals(DictEntry.class)) {
-				return false;
-			}
-			return this.term.equals(((DictEntry) object).term);
 		}
 
 		@Override
