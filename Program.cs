@@ -18,13 +18,6 @@ namespace Program
         static Dictionary<int, Tuple<string, string>> docs;
         static void Main(string[] args)
         {
-
-            string term1 = Console.ReadLine().Trim().ToLower().Replace(" ", "");
-            string term2 = "covid";
-            Console.WriteLine(term1);
-            foreach (string s in term1.Split(" ").Concat(term2.Split(" ")).ToArray()) Console.WriteLine(s);
-
-
             //Basic Console interface loop
             while (running)
             {
@@ -156,7 +149,7 @@ namespace Program
 
         public static List<int> query(string term)
         { //query single term
-            if (term.Contains('*')) { Console.WriteLine("LOLOL"); return wildCardQuery(term.Trim().ToLower()); }
+            if (term.Contains('*')) return wildCardQuery(term.Trim().ToLower()); 
             term = CleanInput(term.Trim().ToLower());
             if (!index.ContainsKey(term)) return new List<int>();
             return postingsIndex[index[term].pointer]; //simple indexing in dictionary
@@ -189,7 +182,7 @@ namespace Program
             subTerms[subTerms.Length - 1] = subTerms[subTerms.Length - 1].Trim();
 
             //postfiltering
-            List<string> tempList = intersectList;
+            List<string> tempList = new List<string>(intersectList);
             foreach (string result in tempList)
             {
                 foreach (string subTerm in subTerms)
@@ -314,7 +307,7 @@ namespace Program
             // Replace invalid characters with empty strings.
             try
             {
-                return Regex.Replace(strIn, @"[^\w#@-]", "",
+                return Regex.Replace(strIn, @"[^\w#@\-\*]", "",
                                      RegexOptions.None, TimeSpan.FromSeconds(1.5));
             }
             // If we timeout when replacing invalid characters,
