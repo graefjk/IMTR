@@ -18,6 +18,13 @@ namespace Program
         static Dictionary<int, Tuple<string, string>> docs;
         static void Main(string[] args)
         {
+
+            string term1 = Console.ReadLine().Trim().ToLower().Replace(" ", "");
+            string term2 = "covid";
+            Console.WriteLine(term1);
+            foreach (string s in term1.Split(" ").Concat(term2.Split(" ")).ToArray()) Console.WriteLine(s);
+
+
             //Basic Console interface loop
             while (running)
             {
@@ -51,30 +58,7 @@ namespace Program
                     case 3: //output different versions of the query into a file.
                         using (StreamWriter writer = new StreamWriter("output.txt"))
                         {
-                            writer.WriteLine("Malaria and Covid vaccines");
-                            writer.Write(query("side effects Malaria", "COVID vaccines"));
-                            writer.Write(query("side effect Malaria", "COVID vaccine"));
                             writer.Write(query("side effects Malaria", "COVID vaccine"));
-                            writer.Write(query("side effect Malaria", "COVID vaccines"));
-                            // "show me tweets of people who talk about the side effects of malaria and
-                            // COVID vaccines" as in "side effects of malaria" and/or "side effects of COVID
-                            // vaccines"
-                            writer.WriteLine("Malaria and/or Covid vaccines");
-                            writer.Write(query("side effects", "Malaria"));
-                            writer.Write(query("side effect", "Malaria"));
-                            writer.Write(query("side effects", "COVID vaccines"));
-                            writer.Write(query("side effect", "COVID vaccines"));
-                            writer.Write(query("side effects", "COVID vaccine"));
-                            writer.Write(query("side effect", "COVID vaccine"));
-
-                            // "show me tweets of people who talk about the side effects of malaria and
-                            // COVID vaccines" as in "side effects of malaria vaccines" and/or "side effects
-                            // of COVID vaccines"
-                            writer.WriteLine("Malaria vaccines and/or and Covid vaccines");
-                            writer.Write(query("side effects", "Malaria vaccines"));
-                            writer.Write(query("side effect", "Malaria vaccines"));
-                            writer.Write(query("side effects", "Malaria vaccine"));
-                            writer.Write(query("side effect", "Malaria vaccine"));
                         }
                         break;
                     case 4:
@@ -82,10 +66,10 @@ namespace Program
                         continue;
                     default: continue;
                     case 5:
-                        Console.WriteLine(wildCardQuery("brit*"));
-                        continue;
+                        wildCardQuery("brit*").ForEach(i => { Console.WriteLine(docs[i].Item2 + "\t" + docs[i].Item1.Replace("\n", " ") + "\n"); });
+                        break;
                     case 6:
-                        Console.WriteLine(query("brit*"));
+                        query("brit*").ForEach(i => { Console.WriteLine(docs[i].Item2 + "\t" + docs[i].Item1.Replace("\n", " ") + "\n"); });
                         continue;
                 }
             }
@@ -124,7 +108,7 @@ namespace Program
                         //go over raw Data and get out normalized types
                         foreach (string currentToken in data.Split(' '))
                         {
-                            var currentType = CleanInput(currentToken).Trim().ToLower();
+                            var currentType = CleanInput(currentToken.Replace("[NEWLINE]", "")).Trim().ToLower();
                             //check if type has already been found inside document
                             if (!typeList.Contains(currentType))
                             {
@@ -172,8 +156,8 @@ namespace Program
 
         public static List<int> query(string term)
         { //query single term
+            if (term.Contains('*')) { Console.WriteLine("LOLOL"); return wildCardQuery(term.Trim().ToLower()); }
             term = CleanInput(term.Trim().ToLower());
-            if (term.Contains("*")) return wildCardQuery(term);
             if (!index.ContainsKey(term)) return new List<int>();
             return postingsIndex[index[term].pointer]; //simple indexing in dictionary
         }
@@ -181,23 +165,18 @@ namespace Program
         private static List<int> wildCardQuery(string term)
         {
             //splitting the searchTerm in multible subterms arrounf the * 
-            string[] subTerms = term.Split("*");
+            string[] subTerms = term.Split('*');
             subTerms[0] = " " + subTerms[0];
             subTerms[subTerms.Length - 1] = subTerms[subTerms.Length - 1] + " ";
-
-            Console.WriteLine(subTerms.ToString());
             List<List<string>> termList = new List<List<string>>();
 
-            for (int n = 0; n < subTerms.Length; n++)
+            foreach (string subTerm in subTerms)
             {
-                string subTerm = subTerms[n];
-                termList.Add(new List<string>());
                 for (int i = 0; i < subTerm.Length - 1; i++)
                 {
-                    termList.Last().AddRange(bigramIndex[subTerm.Substring(i, 2)]);
+                    termList.Add(bigramIndex[subTerm.Substring(i, 2)]);
                 }
             }
-
             //merging all the termLists together
             List<string> intersectList = termList[0];
             intersectList.Sort();
@@ -210,7 +189,8 @@ namespace Program
             subTerms[subTerms.Length - 1] = subTerms[subTerms.Length - 1].Trim();
 
             //postfiltering
-            foreach (string result in intersectList)
+            List<string> tempList = intersectList;
+            foreach (string result in tempList)
             {
                 foreach (string subTerm in subTerms)
                 {
@@ -218,13 +198,13 @@ namespace Program
                 }
             }
 
+            //getting the postingIndexes of the result terms
             List<int> resultList = new List<int>();
-            //getting the docIDs for each word that fits the wildCard Query
-            foreach (string result in intersectList)
-            {
-                resultList.AddRange(postingsIndex[index[result].pointer]);
+            foreach (string result in intersectList) { 
+                resultList.AddRange(postingsIndex[index[result].pointer]); 
             }
 
+            resultList.Sort();
             return resultList;
         }
 
@@ -313,7 +293,7 @@ namespace Program
                 switch (idx1.CompareTo(idx2))
                 {
                     case 0:
-                        returnList.Add(iter1.Current);
+                        returnList.Add(idx1);
                         cont = iter1.MoveNext() && iter2.MoveNext();
                         break;
                     case -1:
@@ -364,13 +344,14 @@ namespace Program
             int n = 0;
             foreach (KeyValuePair<string, PostingsData> entry in index)
             {
-                if (n % 10000 == 0)
+                if (n % 100000 == 0)
                     Console.Write("\rindex: " + n);
                 n++;
-                string term = " " + entry.Key + " "; // using a whitespace as a special character because we know that no term contains a whitespace
-                for (int i = 0; i < term.Length - 1; i++)
+                string term = entry.Key;
+                string paddedTerm = " " + term + " "; // using a whitespace as a special character because we know that no term contains a whitespace
+                for (int i = 0; i < paddedTerm.Length - 1; i++)
                 {
-                    string bigram = term.Substring(i, 2);
+                    string bigram = paddedTerm.Substring(i, 2);
                     if (bigramIndex.ContainsKey(bigram))
                     {
                         bigramIndex[bigram].Add(term);
